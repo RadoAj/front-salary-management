@@ -1,122 +1,111 @@
-import { useState } from 'react'
-import heroImg from './assets/hero.png'
-import reactLogo from './assets/react.svg'
-import viteLogo from './assets/vite.svg'
-import './App.css'
+import { useEffect } from 'react';
+import { BrowserRouter as Router, Routes, Route, useLocation, Navigate } from 'react-router-dom';
+import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer } from 'react-toastify';
+import AuthService from './services/AuthService';
 
-function App() {
-  const [count, setCount] = useState(0)
+import Login from './pages/Login';
+import Register from './pages/Register';
+import Home from './pages/Home';
+import Dashboard from './pages/Dashboard';
+import Employee from './pages/Employee';
+import Department from './pages/Department';
+import Salary from './pages/Salary';
+import Payroll from './pages/Payroll';
+import Bonus from './pages/Bonus';
+import Deduction from './pages/Deduction';
+import UserProfil from './pages/UserProfil';
+import ForgotPswd from './pages/ForgotPswd';
+import ResetPswd from './pages/ResetPswd';
+
+import Sidebar from './components/Sidebar';
+import Navbar from './components/Navbar';
+import PreLoader from './components/Preloader';
+import Footer from './components/Footer';
+
+function LayoutWrapper() {
+  const location = useLocation();
+  const isAuthPage = ['/login', '/register', '/forgot-password', '/reset-password'].includes(location.pathname);
+  const isAuthenticated = AuthService.isAuthenticated();
+
+  useEffect(() => {
+    // Préloader
+    setTimeout(() => {
+      const loader = document.querySelector('.loader-bg');
+      if (loader) {
+        loader.style.opacity = '0';
+        setTimeout(() => loader.remove(), 500);
+      }
+    }, 1000);
+
+    const loadScripts = async () => {
+      await new Promise(resolve => {
+        const checkBootstrap = () => {
+          if (window.bootstrap) return resolve();
+          setTimeout(checkBootstrap, 100);
+        };
+        checkBootstrap();
+      });
+
+      if (window.feather) window.feather.replace();
+    };
+
+    loadScripts();
+  }, [location]);
+
+  // Rediriger vers login si non authentifié et pas sur une page d'authentification
+  if (!isAuthenticated && !isAuthPage) {
+    return <Navigate to="/login" state={{ from: location }} replace />;
+  }
+
+  // Rediriger vers le Home si déjà authentifié et sur login/register
+  if (isAuthenticated && isAuthPage) {
+    return <Navigate to="/" replace />;
+  }
 
   return (
-    <>
-      <section id="center">
-        <div className="hero">
-          <img src={heroImg} className="base" width="170" height="179" alt="" />
-          <img src={reactLogo} className="framework" alt="React logo" />
-          <img src={viteLogo} className="vite" alt="Vite logo" />
-        </div>
-        <div>
-          <h1>Get started</h1>
-          <p>
-            Edit <code>src/App.jsx</code> and save to test <code>HMR</code>
-          </p>
-        </div>
-        <button
-          type="button"
-          className="counter"
-          onClick={() => setCount((count) => count + 1)}
-        >
-          Count is {count}
-        </button>
-      </section>
+    <div className="content">
+      <PreLoader />
 
-      <div className="ticks"></div>
+      {/* Ne pas afficher Navbar et Sidebar sur les pages d'authentification */}
+      {!isAuthPage && (
+        <>
+          <Navbar />
+          <Sidebar />
+        </>
+      )}
 
-      <section id="next-steps">
-        <div id="docs">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#documentation-icon"></use>
-          </svg>
-          <h2>Documentation</h2>
-          <p>Your questions, answered</p>
-          <ul>
-            <li>
-              <a href="https://vite.dev/" target="_blank">
-                <img className="logo" src={viteLogo} alt="" />
-                Explore Vite
-              </a>
-            </li>
-            <li>
-              <a href="https://react.dev/" target="_blank">
-                <img className="button-icon" src={reactLogo} alt="" />
-                Learn more
-              </a>
-            </li>
-          </ul>
-        </div>
-        <div id="social">
-          <svg className="icon" role="presentation" aria-hidden="true">
-            <use href="/icons.svg#social-icon"></use>
-          </svg>
-          <h2>Connect with us</h2>
-          <p>Join the Vite community</p>
-          <ul>
-            <li>
-              <a href="https://github.com/vitejs/vite" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#github-icon"></use>
-                </svg>
-                GitHub
-              </a>
-            </li>
-            <li>
-              <a href="https://chat.vite.dev/" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#discord-icon"></use>
-                </svg>
-                Discord
-              </a>
-            </li>
-            <li>
-              <a href="https://x.com/vite_js" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#x-icon"></use>
-                </svg>
-                X.com
-              </a>
-            </li>
-            <li>
-              <a href="https://bsky.app/profile/vite.dev" target="_blank">
-                <svg
-                  className="button-icon"
-                  role="presentation"
-                  aria-hidden="true"
-                >
-                  <use href="/icons.svg#bluesky-icon"></use>
-                </svg>
-                Bluesky
-              </a>
-            </li>
-          </ul>
-        </div>
-      </section>
+      <Routes>
+        <Route path="/login" element={<Login />} />
+        <Route path="/forgot-password" element={<ForgotPswd />} />
+        <Route path="/reset-password" element={<ResetPswd />} />
+        <Route path="/register" element={<Register />} />
+        <Route path="/" element={<Home />} />
+        <Route path="/dashboard" element={<Dashboard />} />
+        <Route path="/employes" element={<Employee />} />
+        <Route path="/department" element={<Department />} />
+        <Route path="/salary" element={<Salary />} />
+        <Route path="/payroll" element={<Payroll />} />
+        <Route path="/bonus" element={<Bonus />} />
+        <Route path="/deduction" element={<Deduction />} />
+        <Route path="/profil" element={<UserProfil />} />
+        <Route path="*" element={<Navigate to={isAuthenticated ? "/" : "/login"} />} />
+      </Routes>
 
-      <div className="ticks"></div>
-      <section id="spacer"></section>
-    </>
-  )
+      {/* Ne pas afficher Footer sur les pages d'authentification */}
+      {!isAuthPage && <Footer />}
+
+      <ToastContainer />
+    </div>
+  );
 }
 
-export default App
+function App() {
+  return (
+    <Router>
+      <LayoutWrapper />
+    </Router>
+  );
+}
+
+export default App;
